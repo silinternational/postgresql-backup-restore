@@ -1,0 +1,11 @@
+# Vagrant folder
+.vagrant/
+
+# phpstorm project files
+.idea/
+/nbproject/
+# local config files
+local.env
+
+vendor/
+*.aes
