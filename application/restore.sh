@@ -19,13 +19,14 @@ if [ -z "${result}" ]; then
         logger -p 1 -t application.crit "${message}"
         exit 1
     fi
+fi
 
-    result=$(psql --host=${DB_HOST} --user=${DB_ROOTUSER} --command="alter database ${DB_NAME} owner to ${DB_USER};")
-    if [ "${result}" != "ALTER DATABASE" ]; then
-        message="Alter database command failed: ${result}"
-        logger -p 1 -t application.crit "${message}"
-        exit 1
-    fi
+logger -p user.info "changing DB ownership to ${DB_USER}..."
+result=$(psql --host=${DB_HOST} --user=${DB_ROOTUSER} --command="alter database ${DB_NAME} owner to ${DB_USER};")
+if [ "${result}" != "ALTER DATABASE" ]; then
+    message="Alter database command failed: ${result}"
+    logger -p 1 -t application.crit "${message}"
+    exit 1
 fi
 
 logger -p user.info "restoring ${DB_NAME}..."
