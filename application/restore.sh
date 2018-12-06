@@ -21,7 +21,7 @@ if [ -z "${result}" ]; then
     fi
 
     result=$(psql --host=${DB_HOST} --user=${DB_ROOTUSER} --command="alter database ${DB_NAME} owner to ${DB_USER};")
-    if [ "${result}" != "GRANT" ]; then
+    if [ "${result}" != "ALTER DATABASE" ]; then
         message="Alter database command failed: ${result}"
         logger -p 1 -t application.crit "${message}"
         exit 1
