@@ -13,7 +13,7 @@ fi
 logger -p user.info "checking for DB user ${DB_USER}..."
 result=$(psql --host=${DB_HOST} --user=${DB_ROOTUSER} --command='\du' | grep ${DB_USER})
 if [ -z "${result}" ]; then
-    result=$(psql --host=${DB_HOST} --user=${DB_ROOTUSER} --command="create role ${DB_USER} with login password '${DB_PASSWORD}' inherit;")
+    result=$(psql --host=${DB_HOST} --user=${DB_ROOTUSER} --command="create role ${DB_USER} with login password '${DB_USERPASSWORD}' inherit;")
     if [ "${result}" != "CREATE ROLE" ]; then
         message="Create role command failed: ${result}"
         logger -p 1 -t application.crit "${message}"
