@@ -7,7 +7,7 @@ backup: db
 	docker-compose up -d backup
 
 db:
-	docker-compose up -d db adminer
+	docker-compose up -d db
 
 clean:
 	docker-compose kill

@@ -18,15 +18,17 @@ services:
         environment:
             POSTGRES_PASSWORD: r00tp@ss!
 
-    adminer:
-        image: adminer:4.6.3
-        ports:
-            - "8080:8080"
+#    adminer:
+#        image: adminer:4.6.3
+#        ports:
+#            - "8080:8080"
 
     # DB_HOST - hostname of the database server
+    # DB_ROOTUSER - administrative user for the database server
+    # DB_ROOTPASSWORD - password for the DB_ROOTUSER
     # DB_USER - user that accesses the database
-    # DB_PASSWORD - password for the DB_USER
-    # DB_NAMES - list of databases to back up/restore
+    # DB_USERPASSWORD - password for the DB_USER
+    # DB_NAME - name of database to back up/restore
     restore:
         build: ./
         volumes_from:
@@ -35,9 +37,11 @@ services:
             - ./local.env
         environment:
             DB_HOST: db
+            DB_ROOTUSER: postgres
+            DB_ROOTPASSWORD: r00tp@ss!
             DB_USER: postgres
-            DB_PASSWORD: r00tp@ss!
-            DB_NAMES: world
+            DB_USERPASSWORD: r00tp@ss!
+            DB_NAME: world
             MODE: restore
             CRON_SCHEDULE: "25 * * * *"
 
@@ -49,8 +53,10 @@ services:
             - ./local.env
         environment:
             DB_HOST: db
+            DB_ROOTUSER: postgres
+            DB_ROOTPASSWORD: r00tp@ss!
             DB_USER: postgres
-            DB_PASSWORD: r00tp@ss!
-            DB_NAMES: world
+            DB_USERPASSWORD: r00tp@ss!
+            DB_NAME: world
             MODE: backup
             CRON_SCHEDULE: "20 * * * *"
