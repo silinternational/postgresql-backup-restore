@@ -1,5 +1,5 @@
 # postgresql-backup-restore
-Service to backup and/or restore PostgreSQL databases using S3
+Service to backup and/or restore a PostgreSQL database using S3
 
 ## How to use it
 1. Create an S3 bucket to hold your backups
@@ -14,15 +14,19 @@ Service to backup and/or restore PostgreSQL databases using S3
 
 `CRON_SCHEDULE="0 2 * * *"` _defaults to every day at 2:00 AM_ [syntax reference](https://en.wikipedia.org/wiki/Cron)
 
-`DB_NAMES=name1 name2 name3 ...`
-
 `DB_HOST=` hostname of the database server
 
-`DB_USER=` user that accesses the database
-
-`DB_PASSWORD=` password for the `DB_USER`
+`DB_NAME=` name of the database
 
 `DB_OPTIONS=opt1 opt2 opt3 ...` optional arguments to supply to the backup or restore commands
+
+`DB_ROOTPASSWORD=` password for the `DB_ROOTUSER`
+
+`DB_ROOTUSER=` database administrative user, typically "postgres" for PostgreSQL databases
+
+`DB_USERPASSWORD=` password for the `DB_USER`
+
+`DB_USER=` user that accesses the database (PostgreSQL "role")
 
 `AWS_ACCESS_KEY=` used for S3 interactions
 

@@ -1,14 +1,41 @@
 #!/usr/bin/env sh
 
-for dbName in ${DB_NAMES}; do
-    logger -p user.info "restoring ${dbName}..."
+# Does the database exist?
+logger -p user.info "checking for DB ${DB_NAME}..."
+result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --list | grep ${DB_NAME})
+if [ -z "${result}" ]; then
+    message="Database "${DB_NAME}" on host "${DB_HOST}" does not exist."
+    logger -p 1 -t application.crit "${message}"
+    exit 1
+fi
 
-    runny s3cmd get -f ${S3_BUCKET}/${dbName}.sql.gz /tmp/${dbName}.sql.gz
-    runny gunzip -f /tmp/${dbName}.sql.gz
+# Ensure the database user exists.
+logger -p user.info "checking for DB user ${DB_USER}..."
+result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command='\du' | grep ${DB_USER})
+if [ -z "${result}" ]; then
+    result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command="create role ${DB_USER} with login password '${DB_USERPASSWORD}' inherit;")
+    if [ "${result}" != "CREATE ROLE" ]; then
+        message="Create role command failed: ${result}"
+        logger -p 1 -t application.crit "${message}"
+        exit 1
+    fi
+fi
 
-    start=$(date +%s)
-    runny psql --host=${DB_HOST} --username=${DB_USER} ${DB_OPTIONS}  < /tmp/${dbName}.sql
-    end=$(date +%s)
+logger -p user.info "changing DB ownership to ${DB_USER}..."
+result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command="alter database ${DB_NAME} owner to ${DB_USER};")
+if [ "${result}" != "ALTER DATABASE" ]; then
+    message="Alter database command failed: ${result}"
+    logger -p 1 -t application.crit "${message}"
+    exit 1
+fi
 
-    logger -p user.info "${dbName} restored in $(expr ${end} - ${start}) seconds."
-done
+logger -p user.info "restoring ${DB_NAME}..."
+
+runny s3cmd get -f ${S3_BUCKET}/${DB_NAME}.sql.gz /tmp/${DB_NAME}.sql.gz
+runny gunzip -f /tmp/${DB_NAME}.sql.gz
+
+start=$(date +%s)
+runny psql --host=${DB_HOST} --username=${DB_USER} --dbname=${DB_NAME} ${DB_OPTIONS}  < /tmp/${DB_NAME}.sql
+end=$(date +%s)
+
+logger -p user.info "${DB_NAME} restored in $(expr ${end} - ${start}) seconds."
