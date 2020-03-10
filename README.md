@@ -8,11 +8,7 @@ Service to backup and/or restore a PostgreSQL database using S3
 4. Run a backup and check your bucket for that backup
 
 ### Environment variables
-`LOGENTRIES_KEY`
-
 `MODE=[backup|restore]`
-
-`CRON_SCHEDULE="0 2 * * *"` _defaults to every day at 2:00 AM_ [syntax reference](https://en.wikipedia.org/wiki/Cron)
 
 `DB_HOST=` hostname of the database server
 
