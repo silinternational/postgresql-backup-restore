@@ -1,22 +1,14 @@
-FROM alpine:3.8
+FROM alpine:3.11
 
 RUN apk update \
- && apk add --no-cache rsyslog rsyslog-tls \
-                       ca-certificates openssl \
-                       bash \
-                       postgresql \
-                       postgresql-client \
-                       python py-pip \
- && update-ca-certificates \
+ && apk add --no-cache \
+            bash \
+            postgresql \
+            postgresql-client \
+            python py-pip \
  && pip install s3cmd python-magic
-
-COPY dockerbuild/rsyslog.conf /etc/rsyslog.conf
-
-RUN wget https://raw.githubusercontent.com/silinternational/runny/0.2/runny -O /usr/local/bin/runny \
- && chmod +x /usr/local/bin/runny
 
 COPY application/ /data/
 WORKDIR /data
 
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["crond -f"]
+CMD ["./entrypoint.sh"]

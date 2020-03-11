@@ -1,15 +1,42 @@
 #!/usr/bin/env sh
 
-    logger -p user.info "backing up ${DB_NAME}..."
+STATUS=0
 
-    start=$(date +%s)
-    runny $(PGPASSWORD=${DB_USERPASSWORD} pg_dump --host=${DB_HOST} --username=${DB_USER} --create --clean ${DB_OPTIONS} --dbname=${DB_NAME} > /tmp/${DB_NAME}.sql)
-    end=$(date +%s)
+echo "postgresql-backup-restore: backup: Started"
 
-    logger -p user.info "${DB_NAME} backed up ($(stat -c %s /tmp/${DB_NAME}.sql) bytes) in $(expr ${end} - ${start}) seconds."
+echo "postgresql-backup-restore: Backing up ${DB_NAME}"
 
-    runny gzip -f /tmp/${DB_NAME}.sql
-    runny s3cmd put /tmp/${DB_NAME}.sql.gz ${S3_BUCKET}
-#    runny aws s3 cp /tmp/${DB_NAME}.sql.gz ${S3_BUCKET}
+start=$(date +%s)
+$(PGPASSWORD=${DB_USERPASSWORD} pg_dump --host=${DB_HOST} --username=${DB_USER} --create --clean ${DB_OPTIONS} --dbname=${DB_NAME} > /tmp/${DB_NAME}.sql) || STATUS=$?
+end=$(date +%s)
 
-    logger -p user.info "${DB_NAME} backup stored in ${S3_BUCKET}."
+if [ $STATUS -ne 0 ]; then
+    echo "postgresql-backup-restore: FATAL: Backup of ${DB_NAME} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+    exit $STATUS
+else
+    echo "postgresql-backup-restore: Backup of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${DB_NAME}.sql) bytes)."
+fi
+
+start=$(date +%s)
+gzip -f /tmp/${DB_NAME}.sql || STATUS=$?
+end=$(date +%s)
+
+if [ $STATUS -ne 0 ]; then
+    echo "postgresql-backup-restore: FATAL: Compressing backup of ${DB_NAME} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+    exit $STATUS
+else
+    echo "postgresql-backup-restore: Compressing backup of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds."
+fi
+
+start=$(date +%s)
+s3cmd put /tmp/${DB_NAME}.sql.gz ${S3_BUCKET} || STATUS=$?
+end=$(date +%s)
+
+if [ $STATUS -ne 0 ]; then
+    echo "postgresql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${DB_NAME} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+    exit $STATUS
+else
+    echo "postgresql-backup-restore: Copy backup to ${S3_BUCKET} of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds."
+fi
+
+echo "postgresql-backup-restore: backup: Completed"

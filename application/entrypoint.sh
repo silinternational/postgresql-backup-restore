@@ -5,15 +5,19 @@ echo ${DB_HOST}:*:*:${DB_USER}:${DB_USERPASSWORD}      > /root/.pgpass
 echo ${DB_HOST}:*:*:${DB_ROOTUSER}:${DB_ROOTPASSWORD} >> /root/.pgpass
 chmod 600 /root/.pgpass
 
-if [ "${LOGENTRIES_KEY}" ]; then
-    sed -i /etc/rsyslog.conf -e "s/LOGENTRIESKEY/${LOGENTRIES_KEY}/"
-    rsyslogd
-    sleep 10 # ensure rsyslogd is running before we may need to send logs to it
-else
-    logger -p user.error  "Missing LOGENTRIES_KEY environment variable"
+STATUS=0
+
+case "${MODE}" in
+    backup|restore)
+        /data/${MODE}.sh || STATUS=$?
+        ;;
+    *)
+        echo postgresql-backup-restore: FATAL: Unknown MODE: ${MODE}
+        exit 1
+esac
+
+if [ $STATUS -ne 0 ]; then
+    echo postgresql-backup-restore: Non-zero exit: $STATUS
 fi
 
-# default to every day at 2 am when no schedule is provided
-echo "${CRON_SCHEDULE:=0 2 * * *} runny /data/${MODE}.sh" >> /etc/crontabs/root
-
-runny $1
+exit $STATUS
