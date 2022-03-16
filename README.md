@@ -8,27 +8,27 @@ Service to backup and/or restore a PostgreSQL database using S3
 4. Run a backup and check your bucket for that backup
 
 ### Environment variables
-`MODE=[backup|restore]`
+`MODE` Valid values: `backup`, `restore`
 
-`DB_HOST=` hostname of the database server
+`DB_HOST` hostname of the database server
 
-`DB_NAME=` name of the database
+`DB_NAME` name of the database
 
-`DB_OPTIONS=opt1 opt2 opt3 ...` optional arguments to supply to the backup or restore commands
+`DB_OPTIONS` optional arguments to supply to the backup or restore commands
 
-`DB_ROOTPASSWORD=` password for the `DB_ROOTUSER`
+`DB_ROOTPASSWORD` password for the `DB_ROOTUSER`
 
-`DB_ROOTUSER=` database administrative user, typically "postgres" for PostgreSQL databases
+`DB_ROOTUSER` database administrative user, typically "postgres" for PostgreSQL databases
 
-`DB_USERPASSWORD=` password for the `DB_USER`
+`DB_USERPASSWORD` password for the `DB_USER`
 
-`DB_USER=` user that accesses the database (PostgreSQL "role")
+`DB_USER` user that accesses the database (PostgreSQL "role")
 
-`AWS_ACCESS_KEY=` used for S3 interactions
+`AWS_ACCESS_KEY` used for S3 interactions
 
-`AWS_SECRET_KEY=` used for S3 interactions
+`AWS_SECRET_KEY` used for S3 interactions
 
-`S3_BUCKET=` _e.g., s3://database-backups_ **NOTE: no trailing slash**
+`S3_BUCKET` e.g., _s3://database-backups_ **NOTE: no trailing slash**
 
 >**It's recommended that your S3 bucket have versioning turned on.**
 
@@ -38,9 +38,22 @@ This image is built automatically on Docker Hub as [silintl/postgresql-backup-re
 ## Playing with it locally
 You'll need [Docker](https://www.docker.com/get-docker), [Docker Compose](https://docs.docker.com/compose/install/), and [Make](https://www.gnu.org/software/make/).
 
-1. `cp local.env.dist local.env` and supply variables
-2. Ensure you have a `gz` dump in your S3 bucket to be used for testing.  A test database is provided as part of this project in the `test` folder. You can copy it to S3 as follows:
+1. Copy `local.env.dist` to `local.env`.
+2. Edit `local.env` to supply values for the variables.
+3. Ensure you have a `gz` dump in your S3 bucket to be used for testing.  A test database is provided as part of this project in the `test` folder. You can copy it to S3 as follows:
 * `aws s3 cp test/world.sql.gz  ${S3_BUCKET}/world.sql.gz`
-3. `make`
-
-A UI into the local database will then be running at [http://localhost:8080](http://localhost:8080)
+4. `make db`  # creates the Postgres DB server
+5. `make restore`  # restores the DB dump file
+6. `docker ps -a`  # get the Container ID of the exited restore container
+7. `docker logs <containerID>`  # review the restoration log messages
+8. `make backup`  # create a new DB dump file
+9. `docker ps -a`  # get the Container ID of the exited backup container
+10. `docker logs <containerID>`  # review the backup log messages
+11. `make restore`  # restore the DB dump file from the new backup
+12. `docker ps -a`  # get the Container ID of the exited restore container
+13. `docker logs <containerID>`  # review the restoration log messages
+14. `make clean`  # remove containers and network
+15. `docker volume ls`  # find the volume ID of the Postgres data container
+16. `docker volume rm <volumeID>`  # remove the data volume
+17. `docker images`  # list existing images
+18. `docker image rm <imageID ...>`  # remove images no longer needed
