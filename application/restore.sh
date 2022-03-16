@@ -4,15 +4,6 @@ STATUS=0
 
 echo "postgresql-backup-restore: restore: Started"
 
-# Does the database exist?
-echo "postgresql-backup-restore: checking for DB ${DB_NAME}"
-result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --list | grep ${DB_NAME})
-if [ -z "${result}" ]; then
-    message="Database "${DB_NAME}" on host "${DB_HOST}" does not exist."
-    echo "postgresql-backup-restore: FATAL: ${message}"
-    exit 1
-fi
-
 # Ensure the database user exists.
 echo "postgresql-backup-restore: checking for DB user ${DB_USER}"
 result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command='\du' | grep ${DB_USER})
@@ -23,14 +14,6 @@ if [ -z "${result}" ]; then
         echo "postgresql-backup-restore: FATAL: ${message}"
         exit 1
     fi
-fi
-
-echo "postgresql-backup-restore: changing DB ownership to ${DB_USER}"
-result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command="alter database ${DB_NAME} owner to ${DB_USER};")
-if [ "${result}" != "ALTER DATABASE" ]; then
-    message="Alter database command failed: ${result}"
-    echo "postgresql-backup-restore: FATAL: ${message}"
-    exit 1
 fi
 
 echo "postgresql-backup-restore: restoring ${DB_NAME}"
@@ -58,7 +41,7 @@ else
 fi
 
 start=$(date +%s)
-psql --host=${DB_HOST} --username=${DB_USER} --dbname=${DB_NAME} ${DB_OPTIONS}  < /tmp/${DB_NAME}.sql || STATUS=$?
+psql --host=${DB_HOST} --username=${DB_ROOTUSER} --dbname=postgres ${DB_OPTIONS}  < /tmp/${DB_NAME}.sql || STATUS=$?
 end=$(date +%s)
 
 if [ $STATUS -ne 0 ]; then
