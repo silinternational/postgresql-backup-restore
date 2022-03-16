@@ -10,18 +10,13 @@ services:
     # POSTGRES_USER - superuser (default is 'postgres')
     # POSTGRES_DB - name of default database (default is value of POSTGRES_USER)
     db:
-        image: postgres:9.6-alpine
+        image: postgres:11.15-alpine3.15
         volumes_from:
             - data
         ports:
             - "5432"
         environment:
             POSTGRES_PASSWORD: r00tp@ss!
-
-#    adminer:
-#        image: adminer:4.6.3
-#        ports:
-#            - "8080:8080"
 
     # DB_HOST - hostname of the database server
     # DB_ROOTUSER - administrative user for the database server
@@ -39,8 +34,8 @@ services:
             DB_HOST: db
             DB_ROOTUSER: postgres
             DB_ROOTPASSWORD: r00tp@ss!
-            DB_USER: postgres
-            DB_USERPASSWORD: r00tp@ss!
+            DB_USER: dbuser
+            DB_USERPASSWORD: dbuserpass
             DB_NAME: world
             MODE: restore
             CRON_SCHEDULE: "25 * * * *"
@@ -55,8 +50,8 @@ services:
             DB_HOST: db
             DB_ROOTUSER: postgres
             DB_ROOTPASSWORD: r00tp@ss!
-            DB_USER: postgres
-            DB_USERPASSWORD: r00tp@ss!
+            DB_USER: dbuser
+            DB_USERPASSWORD: dbuserpass
             DB_NAME: world
             MODE: backup
             CRON_SCHEDULE: "20 * * * *"
