@@ -16,6 +16,22 @@ if [ -z "${result}" ]; then
     fi
 fi
 
+# Delete database if it exists.
+echo "postgresql-backup-restore: checking for DB ${DB_NAME}"
+result=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --list | grep ${DB_NAME})
+if [ -z "${result}" ]; then
+    message="Database "${DB_NAME}" on host "${DB_HOST}" does not exist."
+    echo "postgresql-backup-restore: INFO: ${message}"
+else
+    echo "postgresql-backup-restore: deleting database ${DB_NAME}"
+    result=$(psql --host=${DB_HOST} --dbname=postgres --username=${DB_USER} --command="DROP DATABASE ${DB_NAME};")
+    if [ "${result}" != "DROP DATABASE" ]; then
+        message="Create database command failed: ${result}"
+        echo "postgresql-backup-restore: FATAL: ${message}"
+        exit 1
+    fi
+fi
+
 echo "postgresql-backup-restore: restoring ${DB_NAME}"
 
 start=$(date +%s)
