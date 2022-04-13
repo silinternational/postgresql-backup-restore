@@ -32,8 +32,7 @@ else
     fi
 fi
 
-echo "postgresql-backup-restore: restoring ${DB_NAME}"
-
+echo "postgresql-backup-restore: copying database ${DB_NAME} backup from ${S3_BUCKET}"
 start=$(date +%s)
 s3cmd get -f ${S3_BUCKET}/${DB_NAME}.sql.gz /tmp/${DB_NAME}.sql.gz || STATUS=$?
 end=$(date +%s)
@@ -45,6 +44,7 @@ else
     echo "postgresql-backup-restore: Copy backup of ${DB_NAME} from ${S3_BUCKET} completed in $(expr ${end} - ${start}) seconds."
 fi
 
+echo "postgresql-backup-restore: decompressing backup of ${DB_NAME}"
 start=$(date +%s)
 gunzip -f /tmp/${DB_NAME}.sql.gz || STATUS=$?
 end=$(date +%s)
@@ -56,6 +56,7 @@ else
     echo "postgresql-backup-restore: Decompressing backup of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds."
 fi
 
+echo "postgresql-backup-restore: restoring ${DB_NAME}"
 start=$(date +%s)
 psql --host=${DB_HOST} --username=${DB_ROOTUSER} --dbname=postgres ${DB_OPTIONS}  < /tmp/${DB_NAME}.sql || STATUS=$?
 end=$(date +%s)
