@@ -24,7 +24,7 @@ if [ -z "${result}" ]; then
     echo "postgresql-backup-restore: INFO: ${message}"
 else
     echo "postgresql-backup-restore: deleting database ${DB_NAME}"
-    result=$(psql --host=${DB_HOST} --dbname=postgres --username=${DB_USER} --command="DROP DATABASE ${DB_NAME};")
+    result=$(psql --host=${DB_HOST} --dbname=postgres --username=${DB_ROOTUSER} --command="DROP DATABASE ${DB_NAME};")
     if [ "${result}" != "DROP DATABASE" ]; then
         message="Create database command failed: ${result}"
         echo "postgresql-backup-restore: FATAL: ${message}"
