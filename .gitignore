@@ -9,3 +9,5 @@ local.env
 
 vendor/
 *.aes
+
+dockercfg

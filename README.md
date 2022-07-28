@@ -1,5 +1,5 @@
 # postgresql-backup-restore
-Service to backup and/or restore a PostgreSQL database using S3
+Service to backup and/or restore a PostgreSQL database to/from S3
 
 ## How to use it
 1. Create an S3 bucket to hold your backups
