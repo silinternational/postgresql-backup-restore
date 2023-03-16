@@ -27,7 +27,7 @@ else
     echo "${MYNAME}: deleting database ${DB_NAME}"
     result=$(psql --host=${DB_HOST} --dbname=postgres --username=${DB_ROOTUSER} --command="DROP DATABASE ${DB_NAME};")
     if [ "${result}" != "DROP DATABASE" ]; then
-        message="Create database command failed: ${result}"
+        message="Drop database command failed: ${result}"
         echo "${MYNAME}: FATAL: ${message}"
         exit 1
     fi
