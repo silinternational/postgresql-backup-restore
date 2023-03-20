@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+MYNAME="postgresql-backup-restore"
+
 # hostname:port:database:username:password
 echo ${DB_HOST}:*:*:${DB_USER}:${DB_USERPASSWORD}      > /root/.pgpass
 echo ${DB_HOST}:*:*:${DB_ROOTUSER}:${DB_ROOTPASSWORD} >> /root/.pgpass
@@ -12,12 +14,12 @@ case "${MODE}" in
         /data/${MODE}.sh || STATUS=$?
         ;;
     *)
-        echo postgresql-backup-restore: FATAL: Unknown MODE: ${MODE}
+        echo ${MYNAME}: FATAL: Unknown MODE: ${MODE}
         exit 1
 esac
 
 if [ $STATUS -ne 0 ]; then
-    echo postgresql-backup-restore: Non-zero exit: $STATUS
+    echo ${MYNAME}: Non-zero exit: $STATUS
 fi
 
 exit $STATUS
