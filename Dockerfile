@@ -7,7 +7,7 @@ RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/reposito
 RUN apk update \
  && apk add --no-cache \
             bash \
-            postgresql12-client \
+            postgresql14-client \
             py3-magic \
             py3-dateutil \
             s3cmd
