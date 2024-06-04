@@ -30,8 +30,17 @@ Service to backup and/or restore a PostgreSQL database to/from S3
 
 `S3_BUCKET` e.g., _s3://database-backups_ **NOTE: no trailing slash**
 
->**It's recommended that your S3 bucket have versioning turned on.**
+>**It's recommended that your S3 bucket have versioning turned on.**  Each backup creates a file of the form _DB_NAME_.sql.gz. If versioning is not turned on, the previous backup file will be replaced with the new one, resulting in a single level of backups.
 
+`B2_BUCKET` (optional) Name of the Backblaze B2 bucket, e.g., _database-backups_. When `B2_BUCKET` is defined, the backup file is copied to the B2 bucket in addition to the S3 bucket.
+
+>**It's recommended that your B2 bucket have versioning and encryption turned on.** Each backup creates a file of the form _DB_NAME_.sql.gz. If versioning is not turned on, the previous backup file will be replaced with the new one, resulting in a single level of backups. Encryption may offer an additional level of protection from attackers. It also has the side effect of preventing downloads of the file via the Backblaze GUI (you'll have to use the `b2` command or the Backblaze API).
+
+`B2_APPLICATION_KEY_ID` (optional; required if `B2_BUCKET` is defined) Backblaze application key ID
+
+`B2_APPLICATION_KEY` (optional; required if `B2_BUCKET` is defined) Backblaze application key secret
+
+`B2_HOST`  (optional; required if `B2_BUCKET` is defined) Backblaze B2 bucket's `Endpoint`
 ## Docker Hub
 This image is built automatically on Docker Hub as [silintl/postgresql-backup-restore](https://hub.docker.com/r/silintl/postgresql-backup-restore/)
 
