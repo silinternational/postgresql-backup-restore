@@ -40,4 +40,22 @@ else
     echo "${MYNAME}: Copy backup to ${S3_BUCKET} of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds."
 fi
 
+if [ "${B2_BUCKET}" != "" ]; then
+    start=$(date +%s)
+    s3cmd \
+        --access_key=${B2_APPLICATION_KEY_ID} \
+        --secret_key=${B2_APPLICATION_KEY} \
+        --host=${B2_HOST} \
+        --host-bucket='%(bucket)s.'"${B2_HOST}" \
+        put /tmp/${DB_NAME}.sql.gz s3://${B2_BUCKET}/${DB_NAME}.sql.gz
+    STATUS=$?
+    end=$(date +%s)
+    if [ $STATUS -ne 0 ]; then
+        echo "${MYNAME}: FATAL: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${DB_NAME} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        exit $STATUS
+    else
+        echo "${MYNAME}: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds."
+    fi
+fi
+
 echo "${MYNAME}: backup: Completed"
