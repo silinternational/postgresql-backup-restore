@@ -24,8 +24,14 @@ if [ -z "${result}" ]; then
     message="Database "${DB_NAME}" on host "${DB_HOST}" does not exist."
     echo "${MYNAME}: INFO: ${message}"
 else
+    message="finding current owner of DB ${DB_NAME}"
+    echo "${MYNAME}: ${message}"
+    db_owner=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command='\list' | grep ${DB_NAME} | cut -d '|' -f 2 | sed -e 's/ *//')
+    message="Database owner is ${db_owner}"
+    echo "${MYNAME}: INFO: ${message}"
+
     echo "${MYNAME}: deleting database ${DB_NAME}"
-    result=$(psql --host=${DB_HOST} --dbname=postgres --username=${DB_USER} --command="DROP DATABASE ${DB_NAME};")
+    result=$(psql --host=${DB_HOST} --dbname=postgres --username=${db_owner} --command="DROP DATABASE ${DB_NAME};")
     if [ "${result}" != "DROP DATABASE" ]; then
         message="Drop database command failed: ${result}"
         echo "${MYNAME}: FATAL: ${message}"
