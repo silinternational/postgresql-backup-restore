@@ -26,7 +26,7 @@ if [ -z "${result}" ]; then
 else
     message="finding current owner of DB ${DB_NAME}"
     echo "${MYNAME}: ${message}"
-    db_owner=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command='\list' | grep ${DB_NAME} | cut -d '|' -f 2 | sed -e 's/ *//')
+    db_owner=$(psql --host=${DB_HOST} --username=${DB_ROOTUSER} --command='\list' | grep ${DB_NAME} | cut -d '|' -f 2 | sed -e 's/ *//g')
     message="Database owner is ${db_owner}"
     echo "${MYNAME}: INFO: ${message}"
 
