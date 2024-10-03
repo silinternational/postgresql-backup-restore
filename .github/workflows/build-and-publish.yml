@@ -29,6 +29,9 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}
+          # Add an additional configuration to ensure valid tags
+          tags: |
+            ${{ github.ref }} # This will take the branch name or tag name
 
       - name: Build and push Docker image to Docker Hub
         uses: docker/build-push-action@v5
@@ -42,4 +45,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.meta.outputs.tags }}
+          # Create a valid tag for the GitHub Container Registry
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
