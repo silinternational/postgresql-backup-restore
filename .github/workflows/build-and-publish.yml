@@ -2,10 +2,12 @@ name: Build and Publish
 
 on:
   push:
+    branches:
+      - develop
 
 jobs:
   build-and-publish:
-    name: Build and Publish
+    name: Build and Publish Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -28,25 +30,17 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}
-          # Add an additional configuration to ensure valid tags
+          images: |
+            ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}
+            ghcr.io/${{ github.repository }}
           tags: |
-            ${{ github.ref }} # This will take the branch name or tag name
+            type=ref,event=branch  # Tag with branch name
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
 
-      - name: Build and push Docker image to Docker Hub
+      - name: Build and push Docker image to Docker Hub and GHCR
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-
-      - name: Build and push Docker image to GitHub Container Registry
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          # Create a valid tag for the GitHub Container Registry
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
