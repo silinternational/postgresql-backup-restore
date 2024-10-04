@@ -3,7 +3,7 @@ name: Build and Publish
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   build-and-publish:
@@ -35,7 +35,7 @@ jobs:
             ghcr.io/${{ github.repository }}
           tags: |
             type=ref,event=branch  # Tag with branch name
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Build and push Docker image to Docker Hub and GHCR
         uses: docker/build-push-action@v5
