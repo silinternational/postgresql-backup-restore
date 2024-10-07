@@ -2,12 +2,12 @@ name: Build and Publish
 
 on:
   push:
-    branches:
-      - main
+    branches: [ 'main' ]  # Trigger on push to 'main'
+    tags: [ '[0-9]+.[0-9]+.[0-9]+' ]  # Trigger on version tags like '0.1.0'
 
 jobs:
   build-and-publish:
-    name: Build and Publish Docker Image
+    name: Build and Publish Docker image 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,9 +35,15 @@ jobs:
             ghcr.io/${{ github.repository }}
           tags: |
             type=ref,event=branch  # Tag with branch name
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+          # labels: | 
+          #   org.opencontainers.image.source=${{ github.repository }}
+          #   org.opencontainers.image.revision=${{ github.sha }}
+          #   org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
 
-      - name: Build and push Docker image to Docker Hub and GHCR
+      - name: Build and push Docker image to DockerHub and GHCR
         uses: docker/build-push-action@v5
         with:
           context: .
