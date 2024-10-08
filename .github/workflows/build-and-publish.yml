@@ -2,7 +2,7 @@ name: Build and Publish
 
 on:
   push:
-    branches: [ 'main' ]  # Trigger on push to 'main'
+    branches: [ 'main', 'master' ]  # Trigger on push to 'main'& 'master' master will be remove step by step
     tags: [ '[0-9]+.[0-9]+.[0-9]+' ]  # Trigger on version tags like '0.1.0'
 
 jobs:
