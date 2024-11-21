@@ -1,17 +1,12 @@
 services:
-    data:
-        image: silintl/data-volume:latest
-        volumes:
-          - ./application:/data
-
     # See https://hub.docker.com/_/postgres/ for details of the postgres image.
     # POSTGRES_PASSWORD - superuser password for PostgreSQL
     # POSTGRES_USER - superuser (default is 'postgres')
     # POSTGRES_DB - name of default database (default is value of POSTGRES_USER)
     db:
         image: postgres:14.11-alpine3.19
-        volumes_from:
-            - data
+        volumes:
+          - ./application:/data
         ports:
             - "5432"
         environment:
@@ -25,8 +20,8 @@ services:
     # DB_NAME - name of database to back up/restore
     restore:
         build: ./
-        volumes_from:
-            - data
+        volumes:
+          - ./application:/data
         env_file:
             - ./local.env
         environment:
@@ -41,8 +36,8 @@ services:
 
     backup:
         build: ./
-        volumes_from:
-            - data
+        volumes:
+          - ./application:/data
         env_file:
             - ./local.env
         environment:
