@@ -12,7 +12,9 @@ RUN apk update \
             postgresql14-client \
             py3-magic \
             py3-dateutil \
-            s3cmd
+            s3cmd \
+            curl \
+            jq
 
 COPY application/ /data/
 WORKDIR /data
