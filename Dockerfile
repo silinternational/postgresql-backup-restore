@@ -16,6 +16,9 @@ RUN apk update \
             curl \
             jq
 
+# Install sentry-cli
+RUN curl -sL https://sentry.io/get-cli/ | bash
+
 COPY application/ /data/
 WORKDIR /data
 
