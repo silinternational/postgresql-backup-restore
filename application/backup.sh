@@ -90,11 +90,11 @@ fi
 if [ "${B2_BUCKET}" != "" ]; then
     start=$(date +%s)
     s3cmd \
-    --access_key=${B2_APPLICATION_KEY_ID} \
-    --secret_key=${B2_APPLICATION_KEY} \
-    --host=${B2_HOST} \
-    --host-bucket='%(bucket)s.'"${B2_HOST}" \
-    put /tmp/${DB_NAME}.sql.gz s3://${B2_BUCKET}/${DB_NAME}.sql.gz
+        --access_key=${B2_APPLICATION_KEY_ID} \
+        --secret_key=${B2_APPLICATION_KEY} \
+        --host=${B2_HOST} \
+        --host-bucket='%(bucket)s.'"${B2_HOST}" \
+        put /tmp/${DB_NAME}.sql.gz s3://${B2_BUCKET}/${DB_NAME}.sql.gz
     STATUS=$?
     end=$(date +%s)
     if [ $STATUS -ne 0 ]; then
