@@ -12,7 +12,12 @@ RUN apk update \
             postgresql14-client \
             py3-magic \
             py3-dateutil \
-            s3cmd
+            s3cmd \
+            curl \
+            jq
+
+# Install sentry-cli
+RUN curl -sL https://sentry.io/get-cli/ | bash
 
 COPY application/ /data/
 WORKDIR /data
