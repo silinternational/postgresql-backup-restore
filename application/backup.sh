@@ -46,6 +46,7 @@ get_parameter() {
 
     value=$(aws ssm get-parameter \
         --name "/${APP_NAME}/${APP_ENV}/${parameter_name}" \
+        --with-decryption \
         --query "Parameter.Value" \
         --output text \
         2>/dev/null)
