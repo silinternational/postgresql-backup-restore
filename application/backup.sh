@@ -39,56 +39,54 @@ error_to_sentry() {
     return 0;
 }
 
+# Function to get parameter from Parameter Store
 get_parameter() {
     local parameter_name="$1"
     local value
 
-    value=$(aws ssm get-parameter --name "${parameter_name}" --query "Parameter.Value" --output text) || return $?
-    echo "${value}"
+    value=$(aws ssm get-parameter \
+        --name "/${APP_NAME}/${APP_ENV}/${parameter_name}" \
+        --query "Parameter.Value" \
+        --output text \
+        2>/dev/null)
+    
+    if [ $? -eq 0 ]; then
+        echo "$value"
+        return 0
+    fi
+    return 1
 }
 
-# Initialize required variables from Parameter Store
+# Initialize sensitive parameters with fallback to environment variables
 init_parameters() {
-    log "INFO" "Fetching parameters from Parameter Store"
+    log "INFO" "Initializing sensitive parameters"
     
-    # Database connection parameters
-    DB_HOST=$(get_parameter "/postgresql-backup/DB_HOST") || return $?
-    DB_USER=$(get_parameter "/postgresql-backup/DB_USER") || return $?
-    DB_USERPASSWORD=$(get_parameter "/postgresql-backup/DB_USERPASSWORD") || return $?
-    DB_NAME=$(get_parameter "/postgresql-backup/DB_NAME") || return $?
-    DB_OPTIONS=$(get_parameter "/postgresql-backup/DB_OPTIONS") || return $?
+    # Try Parameter Store first, fallback to environment variable
+    DB_USERPASSWORD=$(get_parameter "DB_USERPASSWORD") || DB_USERPASSWORD="${DB_USERPASSWORD}"
     
-    # S3 parameters
-    S3_BUCKET=$(get_parameter "/postgresql-backup/S3_BUCKET") || return $?
-    
-    # B2 parameters
-    if [ -n "${B2_BUCKET}" ]; then
-        B2_APPLICATION_KEY_ID=$(get_parameter "/postgresql-backup/B2_APPLICATION_KEY_ID") || return $?
-        B2_APPLICATION_KEY=$(get_parameter "/postgresql-backup/B2_APPLICATION_KEY") || return $?
-        B2_HOST=$(get_parameter "/postgresql-backup/B2_HOST") || return $?
+    # Check if we found a password
+    if [ -z "${DB_USERPASSWORD}" ]; then
+        log "ERROR" "Database password not found in Parameter Store or environment variable"
+        return 1
     fi
 
-    #Export variables
-    export DB_HOST DB_USER DB_USERPASSWORD DB_NAME S3_BUCKET DB_OPTIONS
-    export B2_BUCKET B2_APPLICATION_KEY_ID B2_APPLICATION_KEY B2_HOST
+    export DB_USERPASSWORD
     
-    log "INFO" "Parameters initialized successfully"
-
+    log "INFO" "Sensitive parameters initialized successfully"
 }
 
 MYNAME="postgresql-backup-restore";
 STATUS=0;
 
-log "INFO" "${MYNAME}: backup: Started";
-
-# Initialize parameters from Parameter Store
-if ! init_parameters; then
-    error_message="${MYNAME}: FATAL: Failed to retrieve parameters from Parameter Store"
+# Initialize parameters before starting backup
+init_parameters || {
+    error_message="Failed to initialize parameters - DB_USERPASSWORD not found in Parameter Store or environment variables"
     log "ERROR" "${error_message}"
-    error_to_sentry "${error_message}" "parameter_store" "1"
+    error_to_sentry "${error_message}" "DB_USERPASSWORD" "1"
     exit 1
-fi
+}
 
+log "INFO" "${MYNAME}: backup: Started";
 log "INFO" "${MYNAME}: Backing up ${DB_NAME}";
 
 start=$(date +%s);
