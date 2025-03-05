@@ -67,6 +67,13 @@ init_parameters() {
         B2_APPLICATION_KEY=$(get_parameter "/postgresql-backup/B2_APPLICATION_KEY") || return $?
         B2_HOST=$(get_parameter "/postgresql-backup/B2_HOST") || return $?
     fi
+
+    #Export variables
+    export DB_HOST DB_USER DB_USERPASSWORD DB_NAME S3_BUCKET DB_OPTIONS
+    export B2_BUCKET B2_APPLICATION_KEY_ID B2_APPLICATION_KEY B2_HOST
+    
+    log "INFO" "Parameters initialized successfully"
+
 }
 
 MYNAME="postgresql-backup-restore";
