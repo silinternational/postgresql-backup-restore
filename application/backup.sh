@@ -58,6 +58,22 @@ else
     log "INFO" "${MYNAME}: Backup of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${DB_NAME}.sql) bytes).";
 fi
 
+log "INFO" "Generating checksum for backup file"
+cd /tmp || {
+    error_message="${MYNAME}: FATAL: Failed to change directory to /tmp";
+    log "ERROR" "${error_message}";
+    error_to_sentry "${error_message}" "${DB_NAME}" "1";
+    exit 1;
+}
+
+# Create checksum file format
+sha256sum "${DB_NAME}.sql" > "${DB_NAME}.sql.sha256" || {
+    error_message="${MYNAME}: FATAL: Failed to generate checksum for backup of ${DB_NAME}";
+    log "ERROR" "${error_message}";
+    error_to_sentry "${error_message}" "${DB_NAME}" "1";
+    exit 1;
+}
+
 # Compression
 start=$(date +%s);
 gzip -f /tmp/${DB_NAME}.sql || STATUS=$?;
@@ -71,6 +87,18 @@ if [ $STATUS -ne 0 ]; then
 else
     log "INFO" "${MYNAME}: Compressing backup of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds.";
 fi
+
+# Validate checksum
+log "INFO" "Validating backup checksum"
+# Optional: Added this line for debug
+log "DEBUG" "Checksum file contents: $(cat "${DB_NAME}.sql.sha256")"
+
+sha256sum -c "${DB_NAME}.sql.sha256" || {
+    error_message="${MYNAME}: FATAL: Checksum validation failed for backup of ${DB_NAME}";
+    log "ERROR" "${error_message}";
+    error_to_sentry "${error_message}" "${DB_NAME}" "1";
+    exit 1;
+}
 
 # S3 Upload
 start=$(date +%s);
