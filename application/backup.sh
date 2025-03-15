@@ -73,6 +73,17 @@ sha256sum "${DB_NAME}.sql" > "${DB_NAME}.sql.sha256" || {
     error_to_sentry "${error_message}" "${DB_NAME}" "1";
     exit 1;
 }
+log "DEBUG" "Checksum file contents: $(cat "${DB_NAME}.sql.sha256")";
+
+# Validate checksum
+log "INFO" "${MYNAME}: Validating backup checksum";
+sha256sum -c "${DB_NAME}.sql.sha256" || {
+    error_message="${MYNAME}: FATAL: Checksum validation failed for backup of ${DB_NAME}";
+    log "ERROR" "${error_message}";
+    error_to_sentry "${error_message}" "${DB_NAME}" "1";
+    exit 1;
+}
+log "INFO" "${MYNAME}: Checksum validation successful";
 
 # Compression
 start=$(date +%s);
@@ -88,29 +99,32 @@ else
     log "INFO" "${MYNAME}: Compressing backup of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds.";
 fi
 
-# Validate checksum
-log "INFO" "Validating backup checksum"
-# Optional: Added this line for debug
-log "DEBUG" "Checksum file contents: $(cat "${DB_NAME}.sql.sha256")"
+# Compress checksum file
+gzip -f "${DB_NAME}.sql.sha256";
+if [ $? -ne 0 ]; then
+    log "WARN" "${MYNAME}: Failed to compress checksum file, but continuing backup process";
+fi
 
-sha256sum -c "${DB_NAME}.sql.sha256" || {
-    error_message="${MYNAME}: FATAL: Checksum validation failed for backup of ${DB_NAME}";
-    log "ERROR" "${error_message}";
-    error_to_sentry "${error_message}" "${DB_NAME}" "1";
-    exit 1;
-}
-
-# S3 Upload
+# Upload compressed backup file to S3
 start=$(date +%s);
 s3cmd put /tmp/${DB_NAME}.sql.gz ${S3_BUCKET} || STATUS=$?;
-end=$(date +%s);
 if [ $STATUS -ne 0 ]; then
     error_message="${MYNAME}: FATAL: Copy backup to ${S3_BUCKET} of ${DB_NAME} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds.";
     log "ERROR" "${error_message}";
     error_to_sentry "${error_message}" "${DB_NAME}" "${STATUS}";
     exit $STATUS;
+fi
+
+# Upload checksum file
+s3cmd put /tmp/${DB_NAME}.sql.sha256.gz ${S3_BUCKET} || STATUS=$?;
+end=$(date +%s);
+if [ $STATUS -ne 0 ]; then
+    error_message="${MYNAME}: FATAL: Copy checksum to ${S3_BUCKET} of ${DB_NAME} returned non-zero status ($STATUS).";
+    log "ERROR" "${error_message}";
+    error_to_sentry "${error_message}" "${DB_NAME}" "${STATUS}";
+    exit $STATUS;
 else
-    log "INFO" "${MYNAME}: Copy backup to ${S3_BUCKET} of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds.";
+    log "INFO" "${MYNAME}: Copy backup and checksum to ${S3_BUCKET} of ${DB_NAME} completed in $(expr ${end} - ${start}) seconds.";
 fi
 
 # Backblaze B2 Upload
@@ -135,6 +149,9 @@ if [ "${B2_BUCKET}" != "" ]; then
 fi
 
 echo "postgresql-backup-restore: backup: Completed";
+
+# Clean up temporary files
+rm -f "/tmp/${DB_NAME}.sql.gz" "/tmp/${DB_NAME}.sql.sha256.gz";
 
 log "INFO" "${MYNAME}: backup: Completed";
 
