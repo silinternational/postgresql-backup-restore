@@ -147,7 +147,7 @@ log "INFO" "${MYNAME}: Checksum validation successful - backup integrity confirm
 # Restore the database
 log "INFO" "${MYNAME}: restoring ${DB_NAME}"
 start=$(date +%s)
-psql --host=${DB_HOST} --username=${DB_ROOTUSER} --dbname=postgres ${DB_OPTIONS:-} < /tmp/${DB_NAME}.sql || STATUS=$?
+psql --host=${DB_HOST} --username=${DB_ROOTUSER} --dbname=postgres ${DB_OPTIONS} < /tmp/${DB_NAME}.sql || STATUS=$?
 end=$(date +%s)
 
 if [ $STATUS -ne 0 ]; then
