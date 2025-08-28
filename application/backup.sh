@@ -7,11 +7,25 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${level}: ${message}";
 }
 
+# Function to remove sensitive values from sentry Event
+filter_sensitive_values() {
+    local msg="$1"
+    for var in AWS_ACCESS_KEY AWS_SECRET_KEY B2_APPLICATION_KEY B2_APPLICATION_KEY_ID DB_ROOTPASSWORD DB_USERPASSWORD; do
+        val="${!var}"
+        if [ -n "$val" ]; then
+            msg="${msg//$val/[FILTERED]}"
+        fi
+    done
+    echo "$msg"
+}
+
 # Sentry reporting with validation and backwards compatibility
 error_to_sentry() {
     local error_message="$1";
     local db_name="$2";
     local status_code="$3";
+
+    error_message=$(filter_sensitive_values "$error_message")
 
     # Check if SENTRY_DSN is configured - ensures backup continues
     if [ -z "${SENTRY_DSN:-}" ]; then
